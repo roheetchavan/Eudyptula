@@ -1,0 +1,21 @@
+root@ubuntu:~/eudyptula/Task06# make
+make -C /lib/modules/`uname -r`/build M=$PWD modules
+make[1]: Entering directory '/usr/src/linux-headers-4.4.0-62-generic'
+  CC [M]  /root/eudyptula/Task06/misc_driver.o
+  Building modules, stage 2.
+  MODPOST 1 modules
+  CC      /root/eudyptula/Task06/misc_driver.mod.o
+  LD [M]  /root/eudyptula/Task06/misc_driver.ko
+make[1]: Leaving directory '/usr/src/linux-headers-4.4.0-62-generic'
+root@ubuntu:~/eudyptula/Task06# dmesg -C
+root@ubuntu:~/eudyptula/Task06# insmod misc_driver.ko 
+root@ubuntu:~/eudyptula/Task06# lsmod | grep misc
+misc_driver            16384  0
+root@ubuntu:~/eudyptula/Task06# cat /dev/eudyptula 
+ebfdde43b12aroot@ubuntu:~/eudyptula/Task06# echo "ebfdde43b12b"
+ebfdde43b12b
+root@ubuntu:~/eudyptula/Task06# echo "ebfdde43b12b" > /dev/eudyptula 
+-bash: echo: write error: Invalid argument
+root@ubuntu:~/eudyptula/Task06# echo "ebfdde43b12a" > /dev/eudyptula 
+root@ubuntu:~/eudyptula/Task06# 
+
