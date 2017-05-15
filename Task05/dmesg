@@ -1,0 +1,28 @@
+root@ubuntu:~/eudyptula/Task05# make clean
+make -C /lib/modules/`uname -r`/build M=$PWD clean
+make[1]: Entering directory '/usr/src/linux-headers-4.4.0-62-generic'
+make[1]: Leaving directory '/usr/src/linux-headers-4.4.0-62-generic'
+root@ubuntu:~/eudyptula/Task05# make
+make -C /lib/modules/`uname -r`/build M=$PWD modules
+make[1]: Entering directory '/usr/src/linux-headers-4.4.0-62-generic'
+  CC [M]  /root/eudyptula/Task05/usb_driver.o
+  Building modules, stage 2.
+  MODPOST 1 modules
+  CC      /root/eudyptula/Task05/usb_driver.mod.o
+  LD [M]  /root/eudyptula/Task05/usb_driver.ko
+make[1]: Leaving directory '/usr/src/linux-headers-4.4.0-62-generic'
+root@ubuntu:~/eudyptula/Task05# cp usb_driver.ko /lib/modules/4.4.0-62-generic/
+root@ubuntu:~/eudyptula/Task05# depmod -a
+root@ubuntu:~/eudyptula/Task05# cat /lib/modules/4.4.0-62-generic/modules.alias | grep usb_driver
+alias usb:v*p*d*dc*dsc*dp*ic03isc01ip01in* usb_driver
+root@ubuntu:~/eudyptula/Task05# cat /lib/modules/4.4.0-62-generic/modules.dep | grep usb_driver
+usb_driver.ko:
+root@ubuntu:~/eudyptula/Task05# dmesg -C
+root@ubuntu:~/eudyptula/Task05# dmesg 
+[13582.715431] usb 2-2.2: new low-speed USB device number 16 using uhci_hcd
+[13582.964079] usb 2-2.2: New USB device found, idVendor=413c, idProduct=2107
+[13582.964084] usb 2-2.2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[13582.964086] usb 2-2.2: Product: Dell USB Entry Keyboard
+[13582.964087] usb 2-2.2: Manufacturer: Dell
+[13583.721325] [*]usbkbd initialized successfully.
+root@ubuntu:~/eudyptula/Task05# 
