@@ -1,0 +1,12 @@
+1. https://www.kernel.org/doc/man-pages/linux-next.html
+2. https://github.com/vincentbernat/eudyptula-boot
+3. https://help.ubuntu.com/community/Kernel/Compile
+
+   Way to build ubuntu:
+	make localmodconfig
+	make clean
+	make -j3 deb-pkg
+   Way to install and boot:
+	dpkg -i linux*<version>*.deb
+	reboot
+
