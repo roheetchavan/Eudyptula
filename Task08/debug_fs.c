@@ -5,19 +5,72 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
-
 #include <linux/fs.h>
+#include <linux/poll.h>
 #include <linux/debugfs.h>
 #include <linux/jiffies.h>
-#include <asm/uaccess.h>
+#include <linux/semaphore.h>
 #include <linux/slab.h>
 
 MODULE_LICENSE("GPL");
 
 static const char msg[] = "ebfdde43b12a";
 
+static DEFINE_SEMAPHORE(foo_sem);
+
 static struct dentry *debug_dir;
 static struct dentry *debug_file_id;
+
+static char foo_data[PAGE_SIZE];
+static int foo_len;
+
+static ssize_t foo_read(struct file *file, char __user *buf,
+			size_t count, loff_t *ppos)
+{
+	int retval = -EINVAL;
+
+	if (*ppos != 0)
+		return 0;
+
+	down(&foo_sem);
+
+	if (!copy_to_user(buf, foo_data, foo_len)) {
+		*ppos += count;
+		retval = count;
+	}
+
+	up(&foo_sem);
+	return retval;
+}
+
+static ssize_t foo_write(struct file *file, char const __user *buf,
+			 size_t count, loff_t *ppos)
+{
+	int retval = -EINVAL;
+
+	if (count >= PAGE_SIZE)
+		return -EINVAL;
+
+	down(&foo_sem);
+
+	if (copy_from_user(foo_data, buf, count)) {
+		foo_len = 0;
+	} else {
+		foo_len = count;
+		retval = count;
+	}
+
+	up(&foo_sem);
+	return retval;
+}
+
+static const struct file_operations foo_fops = {
+	.owner = THIS_MODULE,
+	.read = foo_read,
+	.write = foo_write
+};
+
+
 
 static ssize_t id_read(struct file *f, char __user *buf,
 			    size_t len, loff_t *off)
@@ -68,17 +121,24 @@ static int __init debugfs_init(void)
 	debug_file_id = debugfs_create_file("id", 0666,	debug_dir,
 					    NULL, &id_fops);
 	if (!debug_file_id) {
+		pr_err("id create failed");
 		debugfs_remove(debug_dir);
 		return -ENOMEM;
 	}
 
 	/* create jiffies file with read only permission */
 	if (!debugfs_create_u64("jiffies", 0444, debug_dir, (u64*)&jiffies)) {
-		debugfs_remove(debug_dir);
+		pr_err("jiffies create failed");
 		return -ENOMEM;
 	}
 
-
+	/* create file foo which is editable only by root also consider
+	 * precautions for multiple users can access the same i.e. locking
+	 */
+	if (!debugfs_create_file("foo", 0644, debug_dir, NULL, &foo_fops)) {
+		pr_err("foo create failed");
+		return -ENOMEM;
+	}
 	return 0;
 }
 
