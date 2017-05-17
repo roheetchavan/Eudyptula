@@ -1,0 +1,10 @@
+1. https://www.kernel.org/doc/man-pages/linux-next.html
+2. https://github.com/vincentbernat/eudyptula-boot
+3. https://wiki.ubuntu.com/KernelCustomBuild
+	for ubuntu to build:
+		make localmodconfig
+		make clean
+		make -jn deb-pkg	note: n is number of cores plus one
+	for ubuntu to install:
+		use dpk -i to install image and headers generated
+		reboot
