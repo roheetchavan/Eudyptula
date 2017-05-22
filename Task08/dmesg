@@ -1,0 +1,20 @@
+root@ubuntu:~/eudyptula/Task08# ls
+debug_fs.c  links.txt  Makefile  Task08.txt
+root@ubuntu:~/eudyptula/Task08# make
+make -C /lib/modules/`uname -r`/build M=$PWD modules
+make[1]: Entering directory '/usr/src/linux-headers-4.11.0-eudyptula-next-20170508+'
+  CC [M]  /root/eudyptula/Task08/debug_fs.o
+  Building modules, stage 2.
+  MODPOST 1 modules
+  CC      /root/eudyptula/Task08/debug_fs.mod.o
+  LD [M]  /root/eudyptula/Task08/debug_fs.ko
+make[1]: Leaving directory '/usr/src/linux-headers-4.11.0-eudyptula-next-20170508+'
+root@ubuntu:~/eudyptula/Task08# insmod debug_fs.ko 
+root@ubuntu:~/eudyptula/Task08# lsmod | grep debug_fs
+debug_fs               16384  0
+root@ubuntu:~/eudyptula/Task08# cat /sys/kernel/debug/eudyptula/id 
+ebfdde43b12aroot@ubuntu:~/eudyptula/Task08# 
+root@ubuntu:~/eudyptula/Task08# echo "ebfdde43b12x" > /sys/kernel/debug/eudyptula/id 
+-bash: echo: write error: Invalid argument
+root@ubuntu:~/eudyptula/Task08# echo "ebfdde43b12a" > /sys/kernel/debug/eudyptula/id 
+root@ubuntu:~/eudyptula/Task08# 
