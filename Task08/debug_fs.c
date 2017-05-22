@@ -9,6 +9,7 @@
 
 #include <linux/debugfs.h>
 #include <linux/slab.h>
+#include <linux/jiffies.h>
 
 MODULE_LICENSE("GPL");
 
@@ -70,6 +71,12 @@ static int __init debugfs_init(void)
 	if (!debug_file_id) {
 		pr_err("id create failed");
 		debugfs_remove(debug_dir);
+		return -ENOMEM;
+	}
+
+	/* create jiffies file with reading permissions */
+	if (!debugfs_create_u64("jiffies", 0444, debug_dir, (u64*)&jiffies)) {
+		pr_err("jiffies creation failed");
 		return -ENOMEM;
 	}
 
