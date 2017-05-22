@@ -10,6 +10,8 @@
 #include <linux/debugfs.h>
 #include <linux/slab.h>
 #include <linux/jiffies.h>
+#include <linux/poll.h>
+#include <linux/semaphore.h>
 
 MODULE_LICENSE("GPL");
 
@@ -19,6 +21,57 @@ static DEFINE_SEMAPHORE(foo_sem);
 
 static struct dentry *debug_dir;
 static struct dentry *debug_file_id;
+
+static char foo_data[PAGE_SIZE];
+static int foo_len;
+
+static ssize_t foo_read(struct file *file, char __user *buf,
+			size_t count, loff_t *ppos)
+{
+	int retval = -EINVAL;
+
+	if (*ppos != 0)
+		return 0;
+
+	down(&foo_sem);
+
+	if (!copy_to_user(buf, foo_data, foo_len)) {
+		*ppos += count;
+		retval = count;
+	}
+
+	up(&foo_sem);
+	return retval;
+}
+
+static ssize_t foo_write(struct file *file, char const __user *buf,
+			 size_t count, loff_t *ppos)
+{
+	int retval = -EINVAL;
+
+	if (count >= PAGE_SIZE)
+		return -EINVAL;
+
+	down(&foo_sem);
+
+	if (copy_from_user(foo_data, buf, count)) {
+		foo_len = 0;
+	} else {
+		foo_len = count;
+		retval = count;
+	}
+
+	up(&foo_sem);
+	return retval;
+}
+
+static const struct file_operations foo_fops = {
+	.owner = THIS_MODULE,
+	.read = foo_read,
+	.write = foo_write
+};
+
+
 
 static ssize_t id_read(struct file *f, char __user *buf,
 			    size_t len, loff_t *off)
@@ -79,7 +132,14 @@ static int __init debugfs_init(void)
 		pr_err("jiffies creation failed");
 		return -ENOMEM;
 	}
-
+	
+	/* create file foo writable by root 
+	 * use locking precautions for multiple access of file
+	 */
+	if (!debugfs_create_file("foo", 0644, debug_dir, NULL, &foo_fops)) {
+		pr_err("foo creation failed");
+		return -ENOMEM;
+	}
 	return 0;
 }
 
